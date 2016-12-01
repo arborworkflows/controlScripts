@@ -11,16 +11,22 @@ administrative level user authentication is recommended to perform complete back
 
 # example uses
 
-'python arbor_full_collections_backup.py -a "http://localhost:9080" -u user -p password'
+---
+python arbor_full_collections_backup.py -a "http://localhost:9080" -u user -p password
+---
 
 backup the Arbor available at the URL (http://localhost:9080) using the authentication credentials (user, password).  A
 backup will be written in the default locaton ($HOME/arbor/backups). 
 
-'python arbor_restore_collections.py -a "http://localhost:9080" -u user -p password -d "/home/username/arbor/backups/arbor_backup_52.204.9.236_2016-11-30_19:43:49"'
+---
+python arbor_restore_collections.py -a "http://localhost:9080" -u user -p password -d "/home/username/arbor/backups/arbor_backup_52.204.9.236_2016-11-30_19:43:49"
+---
 
 Restore all the collections and datasets from a previously saved collection archived (stored at the 
 /home/username/arbor.... URL).
 
-'python arbor_restore_collections.py --help'
+---
+python arbor_restore_collections.py --help
+---
 
 Explain the command line options available for either script. 
