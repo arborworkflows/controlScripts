@@ -38,9 +38,6 @@ def setCommandLineOptions(argv):
     global arborUser
     global arborUserPassword
 
-    #print 'number of arguments ',len(sys.argv)
-    #print 'argument list:',str(sys.argv)
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-u","--user",help="Arbor user name to use for login",default=arborUser)
     parser.add_argument("-p","--password",help="Arbor user password",default=arborUserPassword)
@@ -53,9 +50,9 @@ def setCommandLineOptions(argv):
     saveRootDirectory = args.dir
     arborUserPassword = args.password
 
-    print 'Arbor URL is ', arborBaseURL
+    print ('Arbor URL is ', arborBaseURL)
     #print 'local save directory is ', saveRootDirectory
-    print 'attempting login in as user:',arborUser, ' with password:', arborUserPassword
+    print('attempting login in as user:',arborUser, ' with password:', arborUserPassword)
 
 
 def performUpload():
@@ -71,13 +68,13 @@ def performUpload():
     try:
         login = gc.authenticate(arborUser, arborUserPassword )
     except girder_client.AuthenticationError:
-        print ''
-        print 'Error: '
-        print 'Unable to login to the Arbor instance.  Please try another user/password.'
-        print 'Use the command option "--help" to see how to specify a different user.'
+        print( '')
+        print( 'Error: ')
+        print( 'Unable to login to the Arbor instance.  Please try another user/password.')
+        print( 'Use the command option "--help" to see how to specify a different user.')
         return
 
-    print 'reading backup from: ',saveRootDirectory
+    print( 'reading content from: ',saveRootDirectory)
     os.chdir(saveRootDirectory)
     
     count = 0
@@ -88,13 +85,12 @@ def performUpload():
 
     exceptionDirectories = ['fxrPrototypes']
     collNameList = [f for f in os.listdir(saveRootDirectory) if (isdir(join(saveRootDirectory, f)) and (f not in exceptionDirectories) and (f[0] != '.'))]
-    #print 'collections found in backup:',collNameList
 
     for coll in collNameList:
         # don't accidently restore a private girder collection
         if (coll != 'private-girder-collection'):
             collName = coll
-            print 'traversing collection:',collName
+            print( 'traversing collection:',collName)
 
             # make a subdirectory for this collection
             collectionDirectory = saveRootDirectory+'/'+collName
@@ -108,25 +104,25 @@ def performUpload():
                 collID = record['_id']
             except girder_client.HttpError:
                 # didn't find the collection, so create it
-                print 'creating collection',collName
+                print ('creating collection',collName)
                 newcollinfo = gc.createCollection(collName,description='',public=False)
                 collID = newcollinfo['_id']
 
             # create the needed subfolders that Arbor anticipates 
-	    folderNameList = ['Analyses','Data','Visualizations']
-	    for fname in folderNameList:
-		folderName = fname
+            folderNameList = ['Analyses','Data','Visualizations']
+            for fname in folderNameList:
+                folderName = fname
                 try:
                     record = gc.resourceLookup('/collection/'+collName+'/'+fname)
                     folderID = record['_id']
                 except girder_client.HttpError:
                     # didn't find the folder, so create it
-                    print 'creating folder',fname
+                    print('creating folder',fname)
                     newfolderinfo = gc.createFolder(collID,fname,description='',parentType='collection',public=True)
                     folderID = newfolderinfo['_id']
 
 	    # now set girder back to the Analyses folder to add analyses
-	    record = gc.resourceLookup('/collection/'+collName+'/Analyses')
+            record = gc.resourceLookup('/collection/'+collName+'/Analyses')
             folderID = record['_id']
 
             # loop through analysis items and create girder items with the analysis code assigned as metadata.
@@ -137,14 +133,13 @@ def performUpload():
             folderDirectory =  saveRootDirectory+'/'+collName
             foundItems = [f for f in os.listdir(folderDirectory) if (isfile(join(folderDirectory, f)) and (f[0] != '.')and (f[0:6] != 'README')) ]
 
-            print 'listing items in this folder:'
+            print('listing items in this folder:')
             for itemfile in foundItems:
                 # the backup format lists each analysis twice.  The full item information (including previous item number, date created
                 # etc. are stored in a json file entitled item_<analysis name>.  Then the analysis code only is in a second json
                 # filed titled <analysis name>.json.  We only want to create one item for each analysis, so filter out the files that
                 # start with 'item_'
                 if itemfile[:5] != 'item_':
-                    print '    ',itemfile
                     # clear out the filetype (json) at the end of the name
                     itemName = itemfile.replace('.json','')
 
@@ -158,20 +153,17 @@ def performUpload():
                         itemID = record['_id']
                     except girder_client.HttpError:
                         # didn't find the item, so create it
-                        print 'creating item ',itemName
                         newiteminfo = gc.loadOrCreateItem(itemName,folderID,reuseExisting=True)
                         itemID = newiteminfo['_id']
 
                         # read the JSON file from the local disk and add this analysis definition as metadata to the item
                         readfile = open(itemfile,'r')
-			try:
-                        	jsonRecord = json.loads(readfile.read())
-                        	#print jsonRecord
-                        	print 'adding metadata to item',itemName
-                        	metaReturn = gc.addMetadataToItem(itemID, {'analysis': jsonRecord})
-                        	readfile.close()
-			except:
-				print('could not process ',itemName)
+                        try:
+                            jsonRecord = json.loads(readfile.read())
+                            metaReturn = gc.addMetadataToItem(itemID, {'analysis': jsonRecord})
+                            readfile.close()
+                        except:
+                            print('could not process ',itemName)
    
 
 
