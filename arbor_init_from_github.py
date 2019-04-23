@@ -105,7 +105,7 @@ def performUpload():
             except girder_client.HttpError:
                 # didn't find the collection, so create it
                 print ('creating collection',collName)
-                newcollinfo = gc.createCollection(collName,description='',public=False)
+                newcollinfo = gc.createCollection(collName,description='',public=True)
                 collID = newcollinfo['_id']
 
             # create the needed subfolders that Arbor anticipates 
